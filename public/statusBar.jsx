@@ -98,34 +98,12 @@ class ReadyBtn extends React.Component {
     render() {
         const { isReady } = this.props;
         return (
-            <div
+            <span
                 className={cs('ready-button', { isReady })}
                 onClick={() => this.toggleReady()}
             >
                 <i className="material-icons">fast_forward</i>
-            </div>
-        )
-    }
-}
-
-class AcceptBtn extends React.Component {
-
-    voteAccept() {
-        this.props.socket.emit("vote-accept");
-    }
-
-    render() {
-        const { playerAcceptVotes, playerAccepted, players } = this.props;
-        const playerAcceptedText = playerAcceptVotes.length > 0
-            ? `(${playerAcceptVotes.length}/${Math.ceil(players.length / 2)}) `
-            : ``;
-        return (
-            <div
-                className={cs('accept-button', { playerAccepted })}
-                onClick={() => !playerAccepted && this.voteAccept()}
-            >
-                Принять {playerAcceptedText}<i className="material-icons">thumb_up</i>
-            </div>
+            </span>
         )
     }
 }
@@ -135,17 +113,6 @@ class Title extends React.Component {
         return (
             <div className="title">
                 {this.props.text}
-            </div>
-        )
-    }
-}
-
-class Subtitle extends React.Component {
-    render() {
-        const { text, readyBtn } = this.props;
-        return (
-            <div className="subtitle">
-                {text} {readyBtn}
             </div>
         )
     }
@@ -353,7 +320,6 @@ class StatusBar extends React.Component {
             hasAccept = !wordGuessed && !wordAccepted && !noHints;
         } else if (phase === 0 && playerWin) {
             content = <div className="player-win">
-                <Avatar data={data} player={playerWin} />
                 <Title text={t('The winner is') + ' ' + window.commonRoom.getPlayerName(playerWin) + '!'} />
             </div>;
             subtitle = enoughText;
@@ -371,7 +337,7 @@ class StatusBar extends React.Component {
                                     <div className="roleTitle"><PlayerName data={data} id={master} /></div>
                                 </div>
                                 <div className="nickNameLock">
-                                    загадывает
+                                    <div className="role-action">загадывает</div>
                                     {scoreChanges[master] && (<div className="nickCorner">
                                         <div className="score-change">
                                             {'+' + scoreChanges[master]}
@@ -379,9 +345,15 @@ class StatusBar extends React.Component {
                                     </div>)}
                                 </div>
                             </div> : ""}
-                            <div className="Realtimer">
-                                {data.phase !== 0 && timed ? <ProgressBar data={data} setPhase2={setPhase2} setTime={setTime} /> :
-                                    <img src="/words-mines/mina.png"></img>}
+                            <div className={cs("Realtimer", {
+                                playerWin
+                            })}>
+                                {data.phase !== 0 && timed && !playerWin
+                                    ? <ProgressBar data={data} setPhase2={setPhase2} setTime={setTime} /> :
+                                    !playerWin
+                                        ? <img src="/words-mines/mina.png"></img>
+                                        : <Avatar data={data} player={playerWin} />
+                                }
                             </div>
                             {guesPlayer || data.phase == 0 || data.phase == 4 ? <div className="guessPlayer">
                                 <div className="role">
@@ -394,7 +366,7 @@ class StatusBar extends React.Component {
                                             {'+' + scoreChanges[master]}
                                         </div>
                                     </div>)}
-                                    oтгадывает
+                                    <div className="role-action">отгадывает</div>
 
                                 </div>
                             </div> : ""}
@@ -405,8 +377,11 @@ class StatusBar extends React.Component {
                         <div onClick={() => this.wordGuessed(true)} class="wordGuessedButton">Слово угадано!</div>
                         <div onClick={() => this.wordGuessed(false)} class="wordNotGuessedButton">Слово не угадано!</div>
                     </div>}
-                    {subtitle && <div className="subtitle">{subtitle}</div>}
-                    {hasReady && <ReadyBtn isReady={isReady} socket={socket} />}
+                    {subtitle && <div className="subtitle">
+                        {subtitle}
+                        {hasReady && <ReadyBtn isReady={isReady} socket={socket} />}
+                    </div>}
+
                 </div>
             </div>
         )
