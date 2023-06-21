@@ -17,7 +17,7 @@ function init(wsServer, path) {
 
     class GameState extends wsServer.users.RoomState {
         constructor(hostId, hostData, userRegistry) {
-            super(hostId, hostData, userRegistry, registry.games.justOne.id, path);
+            super(hostId, hostData, userRegistry, registry.games.wordsMines.id, path);
             const appDir = registry.config.appDir || __dirname;
             const
                 room = {

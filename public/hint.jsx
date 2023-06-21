@@ -91,6 +91,8 @@ class Hint extends React.Component {
             playerLiked === player
             || (phase === 4 && !banned && isGuesser && playerLiked == null && wordGuessed)
         ) {
+            const delta = scoreChanges[player];
+            const changeText = delta ?  ((delta > 0) ? '+' : '') + delta : '';
             corners.push(
                 <div className="tr-corner">
                     <div
@@ -100,20 +102,12 @@ class Hint extends React.Component {
                         <i className="material-icons">{
                             playerLiked === player ? "favorite" : "favorite_outline"
                         }</i>
+                        {delta ? <div className="score-change">
+                            {changeText}
+                        </div> : ''}
                     </div>
                 </div>
             )
-            const delta = scoreChanges[player];
-            if (delta) {
-                const changeText = ((delta > 0) ? '+' : '') + delta;
-                corners.push(
-                    <div className="tl-corner">
-                        <div className="score-change">
-                            {changeText}
-                        </div>
-                    </div>
-                )
-            }
         }
 
 

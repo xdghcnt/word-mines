@@ -27,23 +27,10 @@ class Game extends React.Component {
     }
 
     componentDidMount() {
-        this.gameName = "justOne";
+        this.gameName = "wordsMines";
         const initArgs = CommonRoom.roomInit(this);
         if (!parseInt(localStorage.darkThemejustOne))
             document.body.classList.add("dark-theme");
-        if (!localStorage.justOneUserId) {
-            while (!localStorage.userName)
-                localStorage.userName = prompt("Your name");
-            localStorage.justOneUserId = makeId();
-        }
-        if (!location.hash)
-            history.replaceState(undefined, undefined, location.origin + location.pathname + "#" + makeId());
-        else
-            history.replaceState(undefined, undefined, location.origin + location.pathname + location.hash);
-        if (localStorage.acceptDelete) {
-            initArgs.acceptDelete = localStorage.acceptDelete;
-            delete localStorage.acceptDelete;
-        }
         initArgs.avatarId = localStorage.avatarId;
         initArgs.roomId = this.roomId = location.hash.substr(1);
         initArgs.userId = this.userId = localStorage.justOneUserId;
@@ -56,7 +43,7 @@ class Game extends React.Component {
             CommonRoom.processCommonRoom(state, this.state, {
                 maxPlayers: "∞",
                 largeImageKey: "words-mines",
-                details: "Намёк понял!"
+                details: "Слова-мины!"
             }, this);
             if (this.state.phase && state.phase !== 0 && !parseInt(localStorage.muteSounds)) {
                 if (this.state.master !== this.userId && state.master === this.userId)
@@ -101,7 +88,7 @@ class Game extends React.Component {
         this.socket.on("ping", (id) => {
             this.socket.emit("pong", id);
         });
-        document.title = `Just one - ${initArgs.roomId}`;
+        document.title = `Слова-мины - ${initArgs.roomId}`;
         this.socket.emit("init", initArgs);
         this.tapSound = new Audio("/words-mines/tap.mp3");
         this.tapSound.volume = 0.3;

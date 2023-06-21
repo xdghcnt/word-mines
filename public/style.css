@@ -42,12 +42,15 @@ img.mina {
     filter: invert(1) brightness(0.6)  saturate(1.5);
     margin-top: 5px;
     margin-right: 5px;
+    transition: all 0.3s;
 }
 
 .banned img.mina {
     filter: sepia(1);
     filter: invert(1) brightness(0.4) sepia(1) saturate(100) hue-rotate(352deg);
     width: 125px;
+    opacity: 0.7;
+    z-index: -1;
 }
 
 .guessPlayer .score-change {
@@ -59,7 +62,7 @@ img.mina {
 }
 
 .master .score-change {
-   
+
 }
 
 .superMain-row {
@@ -70,6 +73,7 @@ img.mina {
 .player-list-section {
     align-items: center;
     display: flex;
+    justify-content: center;
 }
 
 .NickNameHerlock {
@@ -103,13 +107,13 @@ img.mina {
 .player-list {
     text-align: left;
     float: left;
-    margin-top: 7%;
+    justify-content: center;
 }
 
 .role {
     display: flex;
     align-items: center;
-    /* gap: 10px; */
+    gap: 10px;
     background: #444;
     border-radius: 40px;
     font-family: arial;
@@ -169,7 +173,7 @@ img.mina {
     background: #444;
     border-radius: 50%;
     padding: 4px;
-    margin-top: -6px;
+    margin-top: -19px;
 }
 .active.players {
     display: flex;
@@ -237,7 +241,7 @@ img.mina {
 
 .game-board {
     justify-content: center;
-    height: 100%;
+    min-height: 100vh;
     user-select: none;
     display: flex;
 }
@@ -297,13 +301,33 @@ body {
 
 @media (min-width: 1081px){
     .superMain-row{
-        
+
+    }
+}
+
+@media (max-width: 650px){
+    .words {
+        justify-content: center;
+    }
+    .main-row {
+        display: flex;
+    }
+}
+
+@media (max-width: 600px){
+    .active.players {
+        zoom: 0.8;
+    }
+}
+
+@media (max-width: 450px){
+    .active.players {
+        zoom: 0.6;
     }
 }
 
 @media (max-width: 860px) {
     .player-list {
-        margin-top: 15%;
         display: flex;
         flex-flow: wrap;
         column-gap: 13px;
@@ -313,7 +337,6 @@ body {
 @media (max-width: 840px) {
     .game-board {
         display: flex;
-        margin-top: -15%;
         justify-content: center;
         flex-flow: column;
     }
@@ -448,6 +471,7 @@ body {
     padding: 0 10px;
     box-sizing: border-box;
     overflow: hidden;
+    justify-content: center;
 }
 
 .main-row.many-players {
@@ -578,6 +602,7 @@ body {
 
 .spectator-placeholder {
     height: 42px;
+    nin-height: 42px;
 }
 
 .spectators-section {
@@ -814,7 +839,6 @@ a {
     height: auto;
     min-height: 140px;
     flex-flow: wrap;
-    max-height: 400px;
     width: 660px;
     grid-template-columns: repeat(auto-fill,minmax(210px, 1fr));
     gap: 22px;
@@ -915,12 +939,8 @@ input#command-input {
     color: gainsboro;
 }
 
-.ready-button, .accept-button {
+.ready-button {
     cursor: pointer;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    padding: 9px;
 }
 
 .accept-button {
@@ -931,7 +951,9 @@ input#command-input {
 }
 
 .ready-button i {
-    font-size: 40px;
+    font-size: 31px;
+    vertical-align: middle;
+    margin-left: 9px;
 }
 
 .accept-button i {
@@ -959,8 +981,6 @@ input#command-input {
 
 .ban-hint-button i, .set-like-button i {
     font-size: 31px;
-    margin-right: 5px;
-    margin-top: 5px;
     color: #ff5500;
 }
 
@@ -982,7 +1002,6 @@ input#command-input {
     /* min-width: 220px; */
     display: grid;
     align-items: center;
-    justify-content: center;
     position: relative;
     box-sizing: border-box;
     text-align: center;
@@ -1000,7 +1019,7 @@ input#command-input {
     line-height: 40px;
     background: #444;
     /* border-radius: 40%; */
-    padding: 5px;
+    padding: 5px 12px;
     background-size: 92%;
     height: auto;
     min-height: 100px;
@@ -1054,6 +1073,7 @@ input#command-input {
     font-family: 'Roboto Condensed', sans-serif;
     letter-spacing: 0.5px;
     font-size: 28px;
+    margin-top: -5px;
 }
 
 .card.closed-word .score-change {
@@ -1071,24 +1091,18 @@ input#command-input {
 }
 
 .card .hint-text {
-    /* position: fixed; */
     color: white;
     text-align: start;
-    margin-left: -59px;
-    min-width: 96px;
-    max-width: 120px;
+    max-width: 100%;
     line-height: 23px;
     font-weight: normal;
     padding-bottom: 8px;
+    overflow-wrap: break-word;
+    overflow: hidden;
 }
 
 .card .bl-corner {
-    /* position: absolute; */
-    left: 0;
-    bottom: 100px;
-    padding: 0px;
     display: flex;
-    margin-left: -58px;
     align-items: center;
 }
 
@@ -1247,6 +1261,22 @@ input#command-input {
     margin: 6px;
 }
 
+.Realtimer.playerWin {
+    width: 100px;
+    height: 100px;
+}
+
+.Realtimer.playerWin .avatar {
+    width: 100px;
+    height: 100px;
+    max-height: none;
+    max-width: none;
+}
+
+.Realtimer.playerWin .avatar i {
+    font-size: 60px;
+}
+
 .rtb-slice1 {
     clip: rect(0, 35px, 70px, 0);
 }
@@ -1262,7 +1292,6 @@ input#command-input {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: black;
     font-weight: bold;
     font-size: 23px;
 }
@@ -1305,4 +1334,8 @@ input#hint-input {
     text-align: right;
     display: flex;
     justify-content: flex-end;
+}
+
+.role-action {
+    padding-top: 5px;
 }
