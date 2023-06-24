@@ -31,14 +31,6 @@ class Game extends React.Component {
         const initArgs = CommonRoom.roomInit(this);
         if (!parseInt(localStorage.darkThemejustOne))
             document.body.classList.add("dark-theme");
-        initArgs.avatarId = localStorage.avatarId;
-        initArgs.roomId = this.roomId = location.hash.substr(1);
-        initArgs.userId = this.userId = localStorage.justOneUserId;
-        initArgs.token = this.userToken = localStorage.userToken;
-        initArgs.userName = localStorage.userName;
-        initArgs.wssToken = window.wssToken;
-        this.socket = window.socket.of(location.pathname);
-        this.player = { cards: [] };
         this.socket.on("state", state => {
             CommonRoom.processCommonRoom(state, this.state, {
                 maxPlayers: "∞",
@@ -65,7 +57,7 @@ class Game extends React.Component {
             this.setState(Object.assign(this.state, state));
         });
         this.socket.on("message", text => {
-            popup.alert({ content: text });
+            popup.alert({content: text});
         });
         window.socket.on("disconnect", (event) => {
             this.setState({
@@ -101,14 +93,14 @@ class Game extends React.Component {
     }
 
     setTime(time) {
-        this.setState(Object.assign({}, this.state, { time: time }));
+        this.setState(Object.assign({}, this.state, {time: time}));
     }
 
     refreshState() {
         this.setState(Object.assign({}, this.state));
     }
 
-    getOptimalWidth({ players }) {
+    getOptimalWidth({players}) {
         const numCards = players.length - 1;
         const contWidth = window.innerWidth - 20; //approximate
         if (numCards <= 6 || contWidth < 760) {
@@ -122,9 +114,10 @@ class Game extends React.Component {
             while (numRows === originalNumRows) {
                 numCols--;
                 numRows = Math.ceil(numCards / numCols);
-            };
+            }
+            ;
             numCols++;
-            return ({ maxWidth: numCols * cardWidth + 'px' });
+            return ({maxWidth: numCols * cardWidth + 'px'});
         }
 
     }
@@ -141,39 +134,39 @@ class Game extends React.Component {
                 isMaster = data.master === data.userId,
                 socket = this.socket;
             return (
-                <div className={cs("game", { timed: this.state.timed })}>
-                    <CommonRoom state={this.state} app={this} />
+                <div className={cs("game", {timed: this.state.timed})}>
+                    <CommonRoom state={this.state} app={this}/>
                     <div className={
                         cs("game-board", {
                             active: this.state.inited,
                             isMaster,
                             teamsLocked: data.teamsLocked
                         })}>
-                        <SpectatorList data={data} socket={socket} />
-                        <PlayerList data={data} socket={socket} />
+                        <SpectatorList data={data} socket={socket}/>
+                        <PlayerList data={data} socket={socket}/>
                         <div className="superMain-row">
                             <div className="main-row">
                                 <StatusBar data={data} socket={socket}
-                                    setTime={(time) => this.setTime(time)}
+                                           setTime={(time) => this.setTime(time)}
                                     //Notify about phase 2
                                     //https://stackoverflow.com/questions/37949981/call-child-method-from-parent#45582558
-                                    setPhase2={cb => this.phase2StatusBar = cb}
+                                           setPhase2={cb => this.phase2StatusBar = cb}
                                 />
                             </div>
                             <div className="main-row" style={this.getOptimalWidth(data)}>
-                                <Hints data={data} socket={socket} />
+                                <Hints data={data} socket={socket}/>
                             </div>
                         </div>
                         <HostControls data={data} socket={socket} app={this}
-                            refreshState={() => this.refreshState()}
+                                      refreshState={() => this.refreshState()}
                         />
                     </div>
                 </div>
             );
         } else {
-            return (<div />);
+            return (<div/>);
         }
     }
 }
 
-ReactDOM.render(<Game />, document.getElementById('root'));
+ReactDOM.render(<Game/>, document.getElementById('root'));

@@ -39,7 +39,7 @@ i.material-icons.host-button.edit-word-button {
 
 img.mina {
     width: 35px;
-    filter: invert(1) brightness(0.6)  saturate(1.5);
+    filter: invert(1) brightness(0.6) saturate(1.5);
     margin-top: 5px;
     margin-right: 5px;
     transition: all 0.3s;
@@ -139,6 +139,13 @@ img.mina {
     padding: 5px;
     text-overflow: ellipsis;
     overflow: hidden;
+    display: flex;
+}
+
+.roleTitle span, .NickNameHerlock span {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .active.players .avatar {
@@ -160,7 +167,7 @@ img.mina {
 }
 
 .master, .guessPlayer {
-    display:  flex;
+    display: flex;
     flex-flow: column;
     margin-top: 15px;
     justify-content: space-between;
@@ -175,6 +182,7 @@ img.mina {
     padding: 4px;
     margin-top: -19px;
 }
+
 .active.players {
     display: flex;
     gap: 15px;
@@ -192,10 +200,12 @@ img.mina {
 .player.ready {
     /* filter: drop-shadow(0px 0px 3px #7ace5a); */
 }
+
 .player.master {
     /* filter: drop-shadow(0px 0px 3px cyan); */
     /* color: #00bdbd; */
 }
+
 .player.guesser {
     /* filter: drop-shadow(0px 0px 3px #ffffff); */
 }
@@ -293,34 +303,35 @@ img.mina {
 }
 
 body {
-    color:#444;
+    color: #444;
     margin: 0;
     background: #202020;
     -webkit-user-drag: none;
 }
 
-@media (min-width: 1081px){
-    .superMain-row{
+@media (min-width: 1081px) {
+    .superMain-row {
 
     }
 }
 
-@media (max-width: 650px){
+@media (max-width: 650px) {
     .words {
         justify-content: center;
     }
+
     .main-row {
         display: flex;
     }
 }
 
-@media (max-width: 600px){
+@media (max-width: 600px) {
     .active.players {
         zoom: 0.8;
     }
 }
 
-@media (max-width: 450px){
+@media (max-width: 450px) {
     .active.players {
         zoom: 0.6;
     }
@@ -478,7 +489,9 @@ body {
     max-width: none;
 }
 
-.status-bar-wrap {margin: 40px 0;}
+.status-bar-wrap {
+    margin: 40px 0;
+}
 
 .status-bar {
     /* background: rgba(255, 252, 245, 0.58); */
@@ -543,15 +556,15 @@ body {
     position: absolute;
     bottom: 13px;
     left: 13px;
-    filter: drop-shadow(0px 0px 2px #050505 );
+    filter: drop-shadow(0px 0px 2px #050505);
 }
 
 .avatar-arrow {
-    filter: drop-shadow(0px 0px 2px #969696 );
+    filter: drop-shadow(0px 0px 2px #969696);
 }
 
 .dark-theme .avatar-arrow {
-    filter: drop-shadow(0px 0px 2px #050505 );
+    filter: drop-shadow(0px 0px 2px #050505);
 }
 
 .avatar-arrow .avatar {
@@ -794,6 +807,7 @@ body {
     margin: 0;
     padding-left: 6px;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .popup_modals .modal_buttons .btn.btn_pmry {
@@ -840,7 +854,7 @@ a {
     min-height: 140px;
     flex-flow: wrap;
     width: 660px;
-    grid-template-columns: repeat(auto-fill,minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
     gap: 22px;
     filter: drop-shadow(0px 0px 2px #969696);
 }
@@ -1057,6 +1071,7 @@ input#command-input {
     height: auto;
     width: auto;
 }
+
 .card.closed-word.back {
     background: #192222;
 }
@@ -1295,6 +1310,7 @@ input#command-input {
     font-weight: bold;
     font-size: 23px;
 }
+
 .round-track-bar .avatar {
     width: 42px;
     height: 42px;
