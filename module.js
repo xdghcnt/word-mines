@@ -15,6 +15,7 @@ function init(wsServer, path) {
 
     const defaultWords = JSON.parse(fs.readFileSync(`${registry.config.appDir}/moderated-words.json`));
 
+
     class GameState extends wsServer.users.RoomState {
         constructor(hostId, hostData, userRegistry) {
             super(hostId, hostData, userRegistry, registry.games.wordsMines.id, path);
@@ -65,7 +66,10 @@ function init(wsServer, path) {
                     masterKicked: false,
                     noHints: false,
                     filtered: [],
-
+                    blackEye: [],
+                    isLiked: true,
+                    circles: 1,
+                    counter: 0
                 },
                 state = {
                     roomWordsList: shuffleArray(defaultWords[room.wordsLevel]),
@@ -84,6 +88,7 @@ function init(wsServer, path) {
                 update = () => {
                     if (room.voiceEnabled)
                         processUserVoice();
+                    console.log("jui")
                     send(room.onlinePlayers, "state", room);
                 },
                 processUserVoice = () => {
@@ -107,6 +112,13 @@ function init(wsServer, path) {
                                 send(playerId, "player-state", {
                                     closedHints: null, closedWord: state.closedWord,
                                     bannedHints: null, unbannedHints: null
+                                });
+                            else if (room.blackEye.includes(playerId))
+                                send(playerId, "player-state", {
+                                    closedHints: state.closedHints,
+                                    closedWord: state.closedWord,
+                                    bannedHints: state.bannedHints,
+                                    unbannedHints: state.unbannedHints
                                 });
                             else
                                 send(playerId, "player-state", {
@@ -170,9 +182,8 @@ function init(wsServer, path) {
                                         processInactivity(room.master, true);
                                         endRound();
                                     } else if (room.phase === 4) {
-                                        if (!room.playerLiked && room.wordGuessed) {
+                                        if (!room.playerLiked && room.wordGuessed && room.isLiked) {
                                             changeScore(room.guesPlayer, -2);
-                                            processInactivity(room.master, true);
                                         }
                                         startRound();
                                     }
@@ -188,6 +199,7 @@ function init(wsServer, path) {
                         room.readyToGuess = null;
                         room.guesPlayer = null;
                         room.wasGuesser = [];
+                        room.counter = 0;
                         room.wasMaster = [];
                         room.playerWin = null;
                         room.playerScores = {};
@@ -320,24 +332,6 @@ function init(wsServer, path) {
                     update();
                     updatePlayerState();
                 },
-                startMasterPhase = () => {
-                    room.phase = 3;
-                    room.readyPlayers.clear();
-                    Object.keys(state.closedHints).forEach((playerId) => {
-                        if (!state.bannedHints[playerId])
-                            room.hints[playerId] = state.closedHints[playerId];
-                        else {
-                            room.playerHints.delete(playerId);
-                        }
-                    });
-                    if (room.playerHints.size === 0) {
-                        room.noHints = true;
-                        endRound();
-                    } else
-                        startTimer();
-                    update();
-                    updatePlayerState();
-                },
                 removePlayer = (playerId) => {
                     if (room.master === playerId)
                         room.master = getNextPlayer();
@@ -357,8 +351,12 @@ function init(wsServer, path) {
                 checkScores = () => {
                     const scores = [...room.players].map(playerId => room.playerScores[playerId] || 0).sort((a, b) => a - b).reverse();
                     const playerLeader = [...room.players].filter(playerId => room.playerScores[playerId] === scores[0])[0];
-                    if ([...room.players][room.players.size - 1] == room.master)
-                        room.playerWin = playerLeader;
+                    if ([...room.players][room.players.size - 1] == room.master) {
+                        room.counter++
+                        room.wasGuesser = room.wasMaster = [];
+                        if (room.counter >= room.circles)
+                            room.playerWin = playerLeader
+                    }
                     if (room.playerWin)
                         endGame();
                 },
@@ -488,7 +486,8 @@ function init(wsServer, path) {
                     }
                 },
                 "set-like": (user, likedUser) => {
-                    if (room.phase === 4 && !room.playerLiked && room.wordGuessed && user == room.guesPlayer) {
+                    if (room.phase === 4 && !room.playerLiked && room.wordGuessed
+                        && user == room.guesPlayer && room.isLiked) {
                         room.playerLiked = likedUser;
                         changeScore(likedUser, 1);
                         if (room.time >= 5000)
@@ -532,6 +531,19 @@ function init(wsServer, path) {
                     }
                     update();
                 },
+                "toggle-like-mod": (user) => {
+                    if (user === room.hostId) {
+                        room.isLiked = !room.isLiked;
+                    }
+                    update();
+                },
+                "circles-count": (user, data) => {
+                    if (user === room.hostId) {
+                        room.circles = data;
+                    }
+                    update();
+                },
+
                 "restart": (user) => {
                     if (user === room.hostId)
                         startGame();
@@ -553,8 +565,12 @@ function init(wsServer, path) {
                         "revealTime",
                         "teamTime",
                         "wordsLevel",
-                        "goal"].indexOf(type) && (type !== "wordsLevel" || (value <= 4 && value >= 1)) && !isNaN(parseInt(value)))
-                        if (type !== "wordsLevel")
+                        "circles-count",
+                        "goal"].indexOf(type)
+                        && (type !== "wordsLevel" || (value <= 4 && value >= 1)) && !isNaN(parseInt(value)))
+                        if (type === "circles-count")
+                            room.circles = value
+                        else if (type !== "wordsLevel")
                             room[type] = parseFloat(value);
                         else if (!room.packName) {
                             room.wordsLevel = parseFloat(value);
@@ -572,6 +588,12 @@ function init(wsServer, path) {
                     if (playerId && user === room.hostId) {
                         room.hostId = playerId;
                         this.emit("host-changed", user, playerId);
+                    }
+                    update();
+                },
+                "give-eye": (user, playerId) => {
+                    if (playerId && user === room.hostId && room.spectators.includes(playerId)) {
+                        room.blackEye.push(playerId);
                     }
                     update();
                 },
