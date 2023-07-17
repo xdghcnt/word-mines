@@ -131,7 +131,7 @@ class HostControls extends React.Component {
                                 />) : (<span className="value">{data.wordsLevel}</span>)}
                             </div>
                             <div className="set-circles-count"><i title={t("circles count")}
-                                className="material-icons">grade</i>
+                                className="material-icons">flag</i>
                                 {(isHost && !inProcess) ? (<input id="circles-count"
                                     type="number"
                                     defaultValue={data.circles}

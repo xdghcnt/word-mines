@@ -26,14 +26,27 @@ class PlayerHostControls extends React.Component {
         evt.stopPropagation();
         popup.confirm(
             { content: `Give host ${window.commonRoom.getPlayerName(id)}?` },
-            (evt) => evt.proceed && this.props.socket.emit("give-host", id))
-            ;
+            (evt) => evt.proceed && this.props.socket.emit("give-host", id));
+    }
+
+    giveEye(id, evt) {
+        evt.stopPropagation();
+        popup.confirm(
+            { content: `Give eye ${window.commonRoom.getPlayerName(id)}?` },
+            (evt) => evt.proceed && this.props.socket.emit("give-eye", id));
     }
 
     render() {
         const
             data = this.props.data,
-            id = this.props.id;
+            id = this.props.id,
+            blackSlotButton = <i
+                className={cs("material-icons", "host-button", { "black-slot-mark": data.hostId !== data.userId })}
+                title={data.hostId === data.userId ? (!data.blackEye.includes(id)
+                    ? "Give black slot" : "Remove black slot") : "Black slot"}
+                onClick={(evt) => this.giveEye(id, evt)}>
+                {!data.blackEye.indexOf(id) ? "visibility_off" : "visibility"}
+            </i>;
         return (
             <div className="player-host-controls">
                 {data.hostId === data.userId && data.players.includes(id) ?
@@ -54,6 +67,9 @@ class PlayerHostControls extends React.Component {
                         onClick={(evt) => this.removePlayer(id, evt)}>
                         delete_forever
                     </i>) : ""}
+                    {(data.spectators.includes(id) && data.hostId === data.userId) ? (
+                    blackSlotButton
+                ) : ""}
                 {(data.hostId === id) ? (
                     <i className="material-icons host-button inactive"
                         title="Game host">
@@ -77,7 +93,6 @@ class Player extends React.Component {
         const { master, readyPlayers } = data;
         const isReady = readyPlayers.includes(id);
         const isMaster = id === master;
-
 
         return (
             <div className={cs("player", {
@@ -163,10 +178,20 @@ class Spectator extends React.Component {
             data = this.props.data,
             socket = this.props.socket,
             id = this.props.id;
+        const blackSlotButton = <i
+            className={cs("material-icons", "host-button", { "black-slot-mark": data.hostId !== data.userId })}
+            title={data.hostId === data.userId ? (!data.blackEye.includes(id)
+                ? "Give black slot" : "Remove black slot") : "Black slot"}
+            onClick={(evt) => this.giveEye(id, evt)}>
+            {!data.blackEye.indexOf(id) ? "visibility" : "visibility"}
+        </i>;
         return (
             <span className={cs("spectator", { self: id === data.userId })}>
                 &nbsp;{data.voiceEnabled ? <UserAudioMarker user={id} data={data} /> : "●"}&nbsp;
                 <span className="spectator-name"><PlayerName data={data} id={id} /></span>
+                {(data.blackEye.includes(id)) ? (
+                    <span className="black-slot-button">&nbsp;{blackSlotButton}</span>
+                ) : ""}
                 &nbsp;
                 <PlayerHostControls id={id} data={data} socket={socket} />
             </span>
