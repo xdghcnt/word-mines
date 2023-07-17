@@ -49,7 +49,7 @@ class Hint extends React.Component {
                 <div className="bl-corner">
                     <Avatar data={data} player={player} />
                     <div className="NickNameHerlock">
-                        <PlayerName data={data} id={player} />
+                        {window.commonRoom.getPlayerName(player)}
                     </div>
                 </div>
             )
@@ -94,7 +94,7 @@ class Hint extends React.Component {
             || (phase === 4 && !banned && isGuesser && playerLiked == null && wordGuessed)
         ) {
             const delta = scoreChanges[player];
-            const changeText = delta ?  ((delta > 0) ? '+' : '') + delta : '';
+            const changeText = delta ? ((delta > 0) ? '+' : '') + delta : '';
             corners.push(
                 <div className="tr-corner">
                     <div

@@ -15,7 +15,6 @@ function init(wsServer, path) {
 
     const defaultWords = JSON.parse(fs.readFileSync(`${registry.config.appDir}/moderated-words.json`));
 
-
     class GameState extends wsServer.users.RoomState {
         constructor(hostId, hostData, userRegistry) {
             super(hostId, hostData, userRegistry, registry.games.wordsMines.id, path);
@@ -69,7 +68,8 @@ function init(wsServer, path) {
                     blackEye: [],
                     isLiked: true,
                     circles: 1,
-                    counter: 0
+                    counter: 0,
+                    buttonEnabled: true
                 },
                 state = {
                     roomWordsList: shuffleArray(defaultWords[room.wordsLevel]),
@@ -113,13 +113,6 @@ function init(wsServer, path) {
                                     closedHints: null, closedWord: state.closedWord,
                                     bannedHints: null, unbannedHints: null
                                 });
-                            else if (room.blackEye.includes(playerId))
-                                send(playerId, "player-state", {
-                                    closedHints: state.closedHints,
-                                    closedWord: state.closedWord,
-                                    bannedHints: state.bannedHints,
-                                    unbannedHints: state.unbannedHints
-                                });
                             else
                                 send(playerId, "player-state", {
                                     closedHints: state.closedHints,
@@ -128,7 +121,14 @@ function init(wsServer, path) {
                                     unbannedHints: state.unbannedHints
                                 });
                         } else {
-                            send(playerId, "player-state", { closedHints: null, closedWord: null });
+                            if (room.blackEye.includes(playerId))
+                                send(playerId, "player-state", {
+                                    closedHints: state.closedHints,
+                                    closedWord: state.closedWord,
+                                    bannedHints: state.bannedHints,
+                                    unbannedHints: state.unbannedHints
+                                })
+                            else { send(playerId, "player-state", { closedHints: null, closedWord: null }); }
                         }
                     });
                 },
@@ -179,7 +179,7 @@ function init(wsServer, path) {
                                     } else if (room.phase === 2) {
                                         endRound();
                                     } else if (room.phase === 3) {
-                                        processInactivity(room.master, true);
+                                        processInactivity(room.master);
                                         endRound();
                                     } else if (room.phase === 4) {
                                         if (!room.playerLiked && room.wordGuessed && room.isLiked) {
@@ -473,16 +473,23 @@ function init(wsServer, path) {
                     }
                 },
                 "toggle-hint-ban": (user, hintUser) => {
-                    if (room.phase === 2 && room.players.has(user) && room.master !== user && room.guesPlayer !== user && state.closedHints[hintUser]) {
-                        if (state.bannedHints[hintUser]) {
-                            state.bannedHints[hintUser] = null;
-                            state.unbannedHints[hintUser] = user;
-                        } else {
-                            state.bannedHints[hintUser] = user;
-                            state.unbannedHints[hintUser] = null;
+                    if (room.buttonEnabled) {
+                        if (room.phase === 2 && room.players.has(user) && room.master
+                            !== user && room.guesPlayer !== user && state.closedHints[hintUser]) {
+                            room.buttonEnabled = false;
+                            if (state.bannedHints[hintUser]) {
+                                state.bannedHints[hintUser] = null;
+                                state.unbannedHints[hintUser] = user;
+                            } else {
+                                state.bannedHints[hintUser] = user;
+                                state.unbannedHints[hintUser] = null;
+                            }
+                            setTimeout(function () {
+                                room.buttonEnabled = true;
+                            }, 900);
+                            update();
+                            updatePlayerState();
                         }
-                        update();
-                        updatePlayerState();
                     }
                 },
                 "set-like": (user, likedUser) => {
@@ -543,7 +550,6 @@ function init(wsServer, path) {
                     }
                     update();
                 },
-
                 "restart": (user) => {
                     if (user === room.hostId)
                         startGame();
@@ -592,10 +598,16 @@ function init(wsServer, path) {
                     update();
                 },
                 "give-eye": (user, playerId) => {
-                    if (playerId && user === room.hostId && room.spectators.includes(playerId)) {
-                        room.blackEye.push(playerId);
+                    if (playerId && user === room.hostId && room.spectators.has(playerId)) {
+                        if (!room.blackEye.includes(playerId))
+                            room.blackEye.push(playerId)
+                        else {
+                            const i = room.blackEye.indexOf(playerId);
+                            room.blackEye.splice(i, 1);
+                        }
+                        update();
+                        updatePlayerState();
                     }
-                    update();
                 },
                 "players-join": (user) => {
                     if (!room.teamsLocked) {
