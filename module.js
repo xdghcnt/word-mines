@@ -88,7 +88,6 @@ function init(wsServer, path) {
                 update = () => {
                     if (room.voiceEnabled)
                         processUserVoice();
-                    console.log("jui")
                     send(room.onlinePlayers, "state", room);
                 },
                 processUserVoice = () => {
@@ -240,6 +239,7 @@ function init(wsServer, path) {
                         };
                         room.playerHints.add(player);
                     });
+                    const hui = null;
                     if (room.wordGuessed && Object.keys(state.bannedHints).length == 0) {
                         changeScore(room.master, 5);
                         changeScore(room.guesPlayer, 5);
@@ -478,11 +478,11 @@ function init(wsServer, path) {
                             !== user && room.guesPlayer !== user && state.closedHints[hintUser]) {
                             room.buttonEnabled = false;
                             if (state.bannedHints[hintUser]) {
-                                state.bannedHints[hintUser] = null;
+                                delete state.bannedHints[hintUser]
                                 state.unbannedHints[hintUser] = user;
                             } else {
                                 state.bannedHints[hintUser] = user;
-                                state.unbannedHints[hintUser] = null;
+                                delete state.unbannedHints[hintUser]
                             }
                             setTimeout(function () {
                                 room.buttonEnabled = true;
