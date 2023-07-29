@@ -112,7 +112,7 @@ function init(wsServer, path) {
                                 else {
                                     send(playerId, "player-state", {
                                         closedHints: null, closedWord: null,
-                                        bannedHints: null, unbannedHints: state.unbannedHints
+                                        bannedHints: state.bannedHints, unbannedHints: state.unbannedHints
                                     })
                                 }
                             }
@@ -125,7 +125,7 @@ function init(wsServer, path) {
                                 } else {
                                     send(playerId, "player-state", {
                                         closedHints: null, closedWord: null,
-                                        bannedHints: null, unbannedHints: state.unbannedHints
+                                        bannedHints: state.bannedHints, unbannedHints: state.unbannedHints
                                     })
                                 }
                             else
