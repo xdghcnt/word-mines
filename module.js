@@ -102,16 +102,32 @@ function init(wsServer, path) {
                 updatePlayerState = () => {
                     [...room.onlinePlayers].forEach(playerId => {
                         if (room.players.has(playerId)) {
-                            if (room.guesPlayer === playerId)
-                                send(playerId, "player-state", {
-                                    closedHints: null, closedWord: null,
-                                    bannedHints: null, unbannedHints: null
-                                });
+                            if (room.guesPlayer === playerId) {
+                                if (room.phase !== 4) {
+                                    send(playerId, "player-state", {
+                                        closedHints: null, closedWord: null,
+                                        bannedHints: null, unbannedHints: null
+                                    });
+                                }
+                                else {
+                                    send(playerId, "player-state", {
+                                        closedHints: null, closedWord: null,
+                                        bannedHints: null, unbannedHints: state.unbannedHints
+                                    })
+                                }
+                            }
                             else if (room.master === playerId)
-                                send(playerId, "player-state", {
-                                    closedHints: null, closedWord: state.closedWord,
-                                    bannedHints: null, unbannedHints: null
-                                });
+                                if (room.phase !== 4) {
+                                    send(playerId, "player-state", {
+                                        closedHints: null, closedWord: state.closedWord,
+                                        bannedHints: null, unbannedHints: null
+                                    });
+                                } else {
+                                    send(playerId, "player-state", {
+                                        closedHints: null, closedWord: null,
+                                        bannedHints: null, unbannedHints: state.unbannedHints
+                                    })
+                                }
                             else
                                 send(playerId, "player-state", {
                                     closedHints: state.closedHints,
