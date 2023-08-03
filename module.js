@@ -373,8 +373,14 @@ function init(wsServer, path) {
                         if (room.counter >= room.circles)
                             room.playerWin = playerLeader
                     }
-                    if (room.playerWin)
+                    if (room.playerWin) {
+                        const userData = { room, user: room.playerWin };
+                        registry.authUsers.processAchievement(userData, registry.achievements.win100WordsMines.id);
+                        registry.authUsers.processAchievement(userData, registry.achievements.winGames.id, {
+                            game: registry.games.wordsMines.id
+                        });
                         endGame();
+                    }
                 },
                 checkCanSetCustom = () => {
                     if (room.konfaMode || room.authUsers[room.hostId]?.subscribeLevel >= 1)
