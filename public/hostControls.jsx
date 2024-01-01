@@ -15,9 +15,9 @@ class HostControls extends React.Component {
     }
 
     clickChangeName() {
-        const {data, socket} = this.props;
-        const {playerNames, userId} = data;
-        popup.prompt({content: "New name", value: window.commonRoom.getPlayerName(userId) || ""}, (evt) => {
+        const { data, socket } = this.props;
+        const { playerNames, userId } = data;
+        popup.prompt({ content: "New name", value: window.commonRoom.getPlayerName(userId) || "" }, (evt) => {
             if (evt.proceed && evt.input_value.trim()) {
                 socket.emit("change-name", evt.input_value.trim());
                 localStorage.userName = evt.input_value.trim();
@@ -41,7 +41,7 @@ class HostControls extends React.Component {
     clickRestart() {
         if (!this.gameIsOver)
             popup.confirm(
-                {content: "Restart? Are you sure?"},
+                { content: "Restart? Are you sure?" },
                 (evt) => evt.proceed && this.props.socket.emit("restart")
             );
         else
@@ -50,6 +50,10 @@ class HostControls extends React.Component {
 
     toggleTimed() {
         this.props.socket.emit("toggle-timed");
+    }
+
+    setLikeMode() {
+        this.props.socket.emit("toggle-like-mod");
     }
 
     setRoomMode() {
@@ -77,56 +81,68 @@ class HostControls extends React.Component {
         const
             data = this.props.data,
             isHost = data.hostId === data.userId,
-            inProcess = data.phase !== 0 && !data.paused;
+            inProcess = data.phase !== 0 && !data.paused,
+            idLiked = data.isLiked;
         return (
             <div className="host-controls" onTouchStart={(e) => e.target.focus()}>
-                <WordPackSelector data={data} app={this.props.app} available={true}/>
+                <WordPackSelector data={data} app={this.props.app} available={true} />
                 {data.timed ? (<div className="host-controls-menu">
                     <div className="little-controls">
                         <div className="game-settings">
                             <div className="set-player-time"><i title={t("player time")}
-                                                                className="material-icons">alarm</i>
+                                className="material-icons">alarm</i>
                                 {(isHost && !inProcess) ? (<input id="player-time"
-                                                                  type="number"
-                                                                  defaultValue={data.playerTime}
-                                                                  min="0"
-                                                                  onChange={evt => !isNaN(evt.target.valueAsNumber)
-                                                                      && this.changeParam(evt.target.valueAsNumber, "playerTime")}
+                                    type="number"
+                                    defaultValue={data.playerTime}
+                                    min="0"
+                                    onChange={evt => !isNaN(evt.target.valueAsNumber)
+                                        && this.changeParam(evt.target.valueAsNumber, "playerTime")}
                                 />) : (<span className="value">{data.playerTime}</span>)}
                             </div>
                             <div className="set-team-time"><i title={t("team time")}
-                                                              className="material-icons">alarm</i>
+                                className="material-icons">alarm</i>
                                 {(isHost && !inProcess) ? (<input id="team-time"
-                                                                  type="number"
-                                                                  defaultValue={data.teamTime} min="0"
-                                                                  onChange={evt => !isNaN(evt.target.valueAsNumber)
-                                                                      && this.changeParam(evt.target.valueAsNumber, "teamTime")}
+                                    type="number"
+                                    defaultValue={data.teamTime} min="0"
+                                    onChange={evt => !isNaN(evt.target.valueAsNumber)
+                                        && this.changeParam(evt.target.valueAsNumber, "teamTime")}
                                 />) : (<span className="value">{data.teamTime}</span>)}
                             </div>
-                                <div className="set-reveal-time"><i title={t("reveal time")}
-                                                                    className="material-icons">alarm_on</i>
-                                    {(isHost && !inProcess) ? (<input id="reveal-time"
-                                                                      type="number"
-                                                                      defaultValue={data.revealTime}
-                                                                      min="0"
-                                                                      onChange={evt => !isNaN(evt.target.valueAsNumber)
-                                                                          && this.changeParam(evt.target.valueAsNumber, "revealTime")}
-                                    />) : (<span className="value">{data.revealTime}</span>)}
-                                </div>
-                                <div className="set-words-level"><i title={t("words level")}
-                                                                    className="material-icons">school</i>
-                                    {(isHost && !inProcess) ? (<input id="words-level"
-                                                                      type="number"
-                                                                      disabled={!!data.packName}
-                                                                      defaultValue={data.wordsLevel}
-                                                                      min="1"
-                                                                      max="4"
-                                                                      onChange={evt => !isNaN(evt.target.valueAsNumber)
-                                                                          && this.changeParam(evt.target.valueAsNumber, "wordsLevel")}
-                                    />) : (<span className="value">{data.wordsLevel}</span>)}
-                                </div>
-                             
-                           
+                            <div className="set-reveal-time"><i title={t("reveal time")}
+                                className="material-icons">alarm_on</i>
+                                {(isHost && !inProcess) ? (<input id="reveal-time"
+                                    type="number"
+                                    defaultValue={data.revealTime}
+                                    min="0"
+                                    onChange={evt => !isNaN(evt.target.valueAsNumber)
+                                        && this.changeParam(evt.target.valueAsNumber, "revealTime")}
+                                />) : (<span className="value">{data.revealTime}</span>)}
+                            </div>
+                            <div className="set-words-level"><i title={t("words level")}
+                                className="material-icons">school</i>
+                                {(isHost && !inProcess) ? (<input id="words-level"
+                                    type="number"
+                                    disabled={!!data.packName}
+                                    defaultValue={data.wordsLevel}
+                                    min="1"
+                                    max="4"
+                                    onChange={evt => !isNaN(evt.target.valueAsNumber)
+                                        && this.changeParam(evt.target.valueAsNumber, "wordsLevel")}
+                                />) : (<span className="value">{data.wordsLevel}</span>)}
+                            </div>
+                            <div className="set-circles-count"><i title={t("circles count")}
+                                className="material-icons">flag</i>
+                                {(isHost && !inProcess) ? (<input id="circles-count"
+                                    type="number"
+                                    defaultValue={data.circles}
+                                    min="1"
+                                    max="10"
+                                    onChange={evt => !isNaN(evt.target.valueAsNumber)
+                                        && this.changeParam(evt.target.valueAsNumber, "circles-count")}
+                                />) : (<span className="value">{data.circles}</span>)}
+                            </div>
+
+
                         </div>
                     </div>
                     {isHost || data.packName ? <div className="little-controls custom-pack-button">
@@ -145,32 +161,37 @@ class HostControls extends React.Component {
                 <div className="side-buttons">
                     {data.userId === data.hostId ?
                         <i onClick={() => this.setRoomMode()}
-                           className="material-icons exit settings-button">store</i> : ""}
+                            className="material-icons exit settings-button">store</i> : ""}
                     {isHost ? (!inProcess
                         ? (<i onClick={() => this.clickTogglePause()}
-                              className="material-icons start-game settings-button">play_arrow</i>)
+                            className="material-icons start-game settings-button">play_arrow</i>)
                         : (<i onClick={() => this.clickTogglePause()}
-                              className="material-icons start-game settings-button">pause</i>)) : ""}
+                            className="material-icons start-game settings-button">pause</i>)) : ""}
+                    {(isHost && data.paused) ? (data.isLiked
+                        ? (<i onClick={() => this.setLikeMode()}
+                            className="material-icons start-game settings-button">favorite</i>)
+                        : (<i onClick={() => this.setLikeMode()}
+                            className="material-icons start-game settings-button">favorite_border</i>)) : ""}
                     {(isHost && data.paused) ? (data.teamsLocked
                         ? (<i onClick={() => this.toggleTeamLockClick()}
-                              className="material-icons start-game settings-button">lock_outline</i>)
+                            className="material-icons start-game settings-button">lock_outline</i>)
                         : (<i onClick={() => this.toggleTeamLockClick()}
-                              className="material-icons start-game settings-button">lock_open</i>)) : ""}
+                            className="material-icons start-game settings-button">lock_open</i>)) : ""}
                     {(isHost && data.paused) ? (!data.timed
                         ? (<i onClick={() => this.toggleTimed()}
-                              className="material-icons start-game settings-button">alarm_off</i>)
+                            className="material-icons start-game settings-button">alarm_off</i>)
                         : (<i onClick={() => this.toggleTimed()}
-                              className="material-icons start-game settings-button">alarm</i>)) : ""}
+                            className="material-icons start-game settings-button">alarm</i>)) : ""}
                     {(isHost && data.paused)
                         ? (<i onClick={() => this.clickRestart()}
-                              className="toggle-theme material-icons settings-button">sync</i>) : ""}
+                            className="toggle-theme material-icons settings-button">sync</i>) : ""}
                     <i onClick={() => this.clickChangeName()}
-                       className="toggle-theme material-icons settings-button">edit</i>
+                        className="toggle-theme material-icons settings-button">edit</i>
                     {!parseInt(localStorage.muteSounds)
                         ? (<i onClick={() => this.toggleMuteSounds()}
-                              className="toggle-theme material-icons settings-button">volume_up</i>)
+                            className="toggle-theme material-icons settings-button">volume_up</i>)
                         : (<i onClick={() => this.toggleMuteSounds()}
-                              className="toggle-theme material-icons settings-button">volume_off</i>)}
+                            className="toggle-theme material-icons settings-button">volume_off</i>)}
                 </div>
                 <i className="settings-hover-button material-icons">settings</i>
             </div>

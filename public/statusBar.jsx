@@ -334,7 +334,7 @@ class StatusBar extends React.Component {
                             {master ? <div className="master">
                                 <div className="role">
                                     <Avatar data={data} player={master} />
-                                    <div className="roleTitle"><PlayerName data={data} id={master} /></div>
+                                    <div className="roleTitle">{window.commonRoom.getPlayerName(master)}</div>
                                 </div>
                                 <div className="nickNameLock">
                                     <div className="role-action">загадывает</div>
@@ -357,7 +357,7 @@ class StatusBar extends React.Component {
                             </div>
                             {guesPlayer || data.phase == 0 || data.phase == 4 ? <div className="guessPlayer">
                                 <div className="role">
-                                    <div className="roleTitle"><PlayerName data={data} id={guesPlayer} /></div>
+                                    <div className="roleTitle">{window.commonRoom.getPlayerName(guesPlayer)}</div>
                                     <Avatar data={data} player={guesPlayer} />
                                 </div>
                                 <div className="nickNameLock">

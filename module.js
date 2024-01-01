@@ -65,7 +65,11 @@ function init(wsServer, path) {
                     masterKicked: false,
                     noHints: false,
                     filtered: [],
-
+                    blackEye: [],
+                    isLiked: true,
+                    circles: 1,
+                    counter: 0,
+                    buttonEnabled: true
                 },
                 state = {
                     roomWordsList: shuffleArray(defaultWords[room.wordsLevel]),
@@ -98,16 +102,32 @@ function init(wsServer, path) {
                 updatePlayerState = () => {
                     [...room.onlinePlayers].forEach(playerId => {
                         if (room.players.has(playerId)) {
-                            if (room.guesPlayer === playerId)
-                                send(playerId, "player-state", {
-                                    closedHints: null, closedWord: null,
-                                    bannedHints: null, unbannedHints: null
-                                });
+                            if (room.guesPlayer === playerId) {
+                                if (room.phase !== 4) {
+                                    send(playerId, "player-state", {
+                                        closedHints: null, closedWord: null,
+                                        bannedHints: null, unbannedHints: null
+                                    });
+                                }
+                                else {
+                                    send(playerId, "player-state", {
+                                        closedHints: null, closedWord: null,
+                                        bannedHints: state.bannedHints, unbannedHints: state.unbannedHints
+                                    })
+                                }
+                            }
                             else if (room.master === playerId)
-                                send(playerId, "player-state", {
-                                    closedHints: null, closedWord: state.closedWord,
-                                    bannedHints: null, unbannedHints: null
-                                });
+                                if (room.phase !== 4) {
+                                    send(playerId, "player-state", {
+                                        closedHints: null, closedWord: state.closedWord,
+                                        bannedHints: null, unbannedHints: null
+                                    });
+                                } else {
+                                    send(playerId, "player-state", {
+                                        closedHints: null, closedWord: null,
+                                        bannedHints: state.bannedHints, unbannedHints: state.unbannedHints
+                                    })
+                                }
                             else
                                 send(playerId, "player-state", {
                                     closedHints: state.closedHints,
@@ -116,7 +136,14 @@ function init(wsServer, path) {
                                     unbannedHints: state.unbannedHints
                                 });
                         } else {
-                            send(playerId, "player-state", { closedHints: null, closedWord: null });
+                            if (room.blackEye.includes(playerId))
+                                send(playerId, "player-state", {
+                                    closedHints: state.closedHints,
+                                    closedWord: state.closedWord,
+                                    bannedHints: state.bannedHints,
+                                    unbannedHints: state.unbannedHints
+                                })
+                            else { send(playerId, "player-state", { closedHints: null, closedWord: null }); }
                         }
                     });
                 },
@@ -167,12 +194,11 @@ function init(wsServer, path) {
                                     } else if (room.phase === 2) {
                                         endRound();
                                     } else if (room.phase === 3) {
-                                        processInactivity(room.master, true);
+                                        processInactivity(room.master);
                                         endRound();
                                     } else if (room.phase === 4) {
-                                        if (!room.playerLiked && room.wordGuessed) {
+                                        if (!room.playerLiked && room.wordGuessed && room.isLiked) {
                                             changeScore(room.guesPlayer, -2);
-                                            processInactivity(room.master, true);
                                         }
                                         startRound();
                                     }
@@ -188,6 +214,7 @@ function init(wsServer, path) {
                         room.readyToGuess = null;
                         room.guesPlayer = null;
                         room.wasGuesser = [];
+                        room.counter = 0;
                         room.wasMaster = [];
                         room.playerWin = null;
                         room.playerScores = {};
@@ -228,6 +255,7 @@ function init(wsServer, path) {
                         };
                         room.playerHints.add(player);
                     });
+                    const hui = null;
                     if (room.wordGuessed && Object.keys(state.bannedHints).length == 0) {
                         changeScore(room.master, 5);
                         changeScore(room.guesPlayer, 5);
@@ -320,24 +348,6 @@ function init(wsServer, path) {
                     update();
                     updatePlayerState();
                 },
-                startMasterPhase = () => {
-                    room.phase = 3;
-                    room.readyPlayers.clear();
-                    Object.keys(state.closedHints).forEach((playerId) => {
-                        if (!state.bannedHints[playerId])
-                            room.hints[playerId] = state.closedHints[playerId];
-                        else {
-                            room.playerHints.delete(playerId);
-                        }
-                    });
-                    if (room.playerHints.size === 0) {
-                        room.noHints = true;
-                        endRound();
-                    } else
-                        startTimer();
-                    update();
-                    updatePlayerState();
-                },
                 removePlayer = (playerId) => {
                     if (room.master === playerId)
                         room.master = getNextPlayer();
@@ -357,10 +367,20 @@ function init(wsServer, path) {
                 checkScores = () => {
                     const scores = [...room.players].map(playerId => room.playerScores[playerId] || 0).sort((a, b) => a - b).reverse();
                     const playerLeader = [...room.players].filter(playerId => room.playerScores[playerId] === scores[0])[0];
-                    if ([...room.players][room.players.size - 1] == room.master)
-                        room.playerWin = playerLeader;
-                    if (room.playerWin)
+                    if ([...room.players][room.players.size - 1] == room.master) {
+                        room.counter++
+                        room.wasGuesser = room.wasMaster = [];
+                        if (room.counter >= room.circles)
+                            room.playerWin = playerLeader
+                    }
+                    if (room.playerWin) {
+                        const userData = { room, user: room.playerWin };
+                        registry.authUsers.processAchievement(userData, registry.achievements.win100WordsMines.id);
+                        registry.authUsers.processAchievement(userData, registry.achievements.winGames.id, {
+                            game: registry.games.wordsMines.id
+                        });
                         endGame();
+                    }
                 },
                 checkCanSetCustom = () => {
                     if (room.konfaMode || room.authUsers[room.hostId]?.subscribeLevel >= 1)
@@ -475,20 +495,28 @@ function init(wsServer, path) {
                     }
                 },
                 "toggle-hint-ban": (user, hintUser) => {
-                    if (room.phase === 2 && room.players.has(user) && room.master !== user && room.guesPlayer !== user && state.closedHints[hintUser]) {
-                        if (state.bannedHints[hintUser]) {
-                            state.bannedHints[hintUser] = null;
-                            state.unbannedHints[hintUser] = user;
-                        } else {
-                            state.bannedHints[hintUser] = user;
-                            state.unbannedHints[hintUser] = null;
+                    if (room.buttonEnabled) {
+                        if (room.phase === 2 && room.players.has(user) && room.master
+                            !== user && room.guesPlayer !== user && state.closedHints[hintUser]) {
+                            room.buttonEnabled = false;
+                            if (state.bannedHints[hintUser]) {
+                                delete state.bannedHints[hintUser]
+                                state.unbannedHints[hintUser] = user;
+                            } else {
+                                state.bannedHints[hintUser] = user;
+                                delete state.unbannedHints[hintUser]
+                            }
+                            setTimeout(function () {
+                                room.buttonEnabled = true;
+                            }, 900);
+                            update();
+                            updatePlayerState();
                         }
-                        update();
-                        updatePlayerState();
                     }
                 },
                 "set-like": (user, likedUser) => {
-                    if (room.phase === 4 && !room.playerLiked && room.wordGuessed && user == room.guesPlayer) {
+                    if (room.phase === 4 && !room.playerLiked && room.wordGuessed
+                        && user == room.guesPlayer && room.isLiked) {
                         room.playerLiked = likedUser;
                         changeScore(likedUser, 1);
                         if (room.time >= 5000)
@@ -532,6 +560,18 @@ function init(wsServer, path) {
                     }
                     update();
                 },
+                "toggle-like-mod": (user) => {
+                    if (user === room.hostId) {
+                        room.isLiked = !room.isLiked;
+                    }
+                    update();
+                },
+                "circles-count": (user, data) => {
+                    if (user === room.hostId) {
+                        room.circles = data;
+                    }
+                    update();
+                },
                 "restart": (user) => {
                     if (user === room.hostId)
                         startGame();
@@ -553,8 +593,12 @@ function init(wsServer, path) {
                         "revealTime",
                         "teamTime",
                         "wordsLevel",
-                        "goal"].indexOf(type) && (type !== "wordsLevel" || (value <= 4 && value >= 1)) && !isNaN(parseInt(value)))
-                        if (type !== "wordsLevel")
+                        "circles-count",
+                        "goal"].indexOf(type)
+                        && (type !== "wordsLevel" || (value <= 4 && value >= 1)) && !isNaN(parseInt(value)))
+                        if (type === "circles-count")
+                            room.circles = value
+                        else if (type !== "wordsLevel")
                             room[type] = parseFloat(value);
                         else if (!room.packName) {
                             room.wordsLevel = parseFloat(value);
@@ -574,6 +618,18 @@ function init(wsServer, path) {
                         this.emit("host-changed", user, playerId);
                     }
                     update();
+                },
+                "give-eye": (user, playerId) => {
+                    if (playerId && user === room.hostId && room.spectators.has(playerId)) {
+                        if (!room.blackEye.includes(playerId))
+                            room.blackEye.push(playerId)
+                        else {
+                            const i = room.blackEye.indexOf(playerId);
+                            room.blackEye.splice(i, 1);
+                        }
+                        update();
+                        updatePlayerState();
+                    }
                 },
                 "players-join": (user) => {
                     if (!room.teamsLocked) {

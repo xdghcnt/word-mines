@@ -35,7 +35,7 @@ class Hint extends React.Component {
     render() {
         const { data, player, index } = this.props;
         const { bannedHints, unbannedHints, hints, closedHints, playerLiked, userId, master, phase,
-            wordGuessed, scoreChanges, rounds, players } = data;
+            wordGuessed, scoreChanges, rounds, players, isLiked } = data;
         const banned = bannedHints?.[player];
         const unbanned = unbannedHints?.[player];
         const isMaster = userId === master;
@@ -49,7 +49,7 @@ class Hint extends React.Component {
                 <div className="bl-corner">
                     <Avatar data={data} player={player} />
                     <div className="NickNameHerlock">
-                        <PlayerName data={data} id={player} />
+                        {window.commonRoom.getPlayerName(player)}
                     </div>
                 </div>
             )
@@ -87,12 +87,14 @@ class Hint extends React.Component {
                 </div>
             )
         }
-        if (
+        if (!data.isLiked) {
+
+        } else if (
             playerLiked === player
             || (phase === 4 && !banned && isGuesser && playerLiked == null && wordGuessed)
         ) {
             const delta = scoreChanges[player];
-            const changeText = delta ?  ((delta > 0) ? '+' : '') + delta : '';
+            const changeText = delta ? ((delta > 0) ? '+' : '') + delta : '';
             corners.push(
                 <div className="tr-corner">
                     <div
