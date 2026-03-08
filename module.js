@@ -6,7 +6,7 @@ function init(wsServer, path) {
         registry = wsServer.users,
         channel = "words-mines",
         testMode = process.argv[2] === "debug",
-        PLAYERS_MIN = testMode ? 1 : 4;
+        PLAYERS_MIN = testMode ? 1 : 3;
 
     app.use("/words-mines", wsServer.static(`${__dirname}/public`));
     if (registry.config.appDir)
@@ -108,15 +108,13 @@ function init(wsServer, path) {
                                         closedHints: null, closedWord: null,
                                         bannedHints: null, unbannedHints: null
                                     });
-                                }
-                                else {
+                                } else {
                                     send(playerId, "player-state", {
                                         closedHints: null, closedWord: null,
                                         bannedHints: state.bannedHints, unbannedHints: state.unbannedHints
                                     })
                                 }
-                            }
-                            else if (room.master === playerId)
+                            } else if (room.master === playerId)
                                 if (room.phase !== 4) {
                                     send(playerId, "player-state", {
                                         closedHints: null, closedWord: state.closedWord,
@@ -143,7 +141,9 @@ function init(wsServer, path) {
                                     bannedHints: state.bannedHints,
                                     unbannedHints: state.unbannedHints
                                 })
-                            else { send(playerId, "player-state", { closedHints: null, closedWord: null }); }
+                            else {
+                                send(playerId, "player-state", {closedHints: null, closedWord: null});
+                            }
                         }
                     });
                 },
@@ -252,14 +252,16 @@ function init(wsServer, path) {
                     Object.keys(state.closedHints).forEach((player) => {
                         if (state.bannedHints[player]) {
                             changeScore(player, 3);
-                        };
+                        }
+                        ;
                         room.playerHints.add(player);
                     });
                     const hui = null;
                     if (room.wordGuessed && Object.keys(state.bannedHints).length == 0) {
                         changeScore(room.master, 5);
                         changeScore(room.guesPlayer, 5);
-                    };
+                    }
+                    ;
                     room.word = state.closedWord;
                     room.hints = state.closedHints;
                     room.wasMaster.push(room.master);
@@ -287,7 +289,8 @@ function init(wsServer, path) {
                         room.filtered = [...room.players].filter(it => {
                             return !room.wasGuesser.includes(it) && it !== room.master;
                         });
-                    };
+                    }
+                    ;
                     room.guesPlayer = shuffleArray(room.filtered)[0];
                     room.wasGuesser.push(room.guesPlayer);
                 },
@@ -374,7 +377,7 @@ function init(wsServer, path) {
                             room.playerWin = playerLeader
                     }
                     if (room.playerWin) {
-                        const userData = { room, user: room.playerWin };
+                        const userData = {room, user: room.playerWin};
                         registry.authUsers.processAchievement(userData, registry.achievements.win100WordsMines.id);
                         registry.authUsers.processAchievement(userData, registry.achievements.winGames.id, {
                             game: registry.games.wordsMines.id
@@ -523,7 +526,8 @@ function init(wsServer, path) {
                             room.time = 5000;
                         checkScores();
                         update();
-                    };
+                    }
+                    ;
                 },
                 "set-player-score": (user, data) => {
                     if (room.hostId === user && room.players.has(user) && !isNaN(parseInt(data.score))) {
@@ -588,13 +592,13 @@ function init(wsServer, path) {
                 },
                 "set-param": (user, type, value) => {
                     if (user === room.hostId && ~[
-                        "masterTime",
-                        "playerTime",
-                        "revealTime",
-                        "teamTime",
-                        "wordsLevel",
-                        "circles-count",
-                        "goal"].indexOf(type)
+                            "masterTime",
+                            "playerTime",
+                            "revealTime",
+                            "teamTime",
+                            "wordsLevel",
+                            "circles-count",
+                            "goal"].indexOf(type)
                         && (type !== "wordsLevel" || (value <= 4 && value >= 1)) && !isNaN(parseInt(value)))
                         if (type === "circles-count")
                             room.circles = value
